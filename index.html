@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Редактор игры</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+      margin-right: 10px;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .btn-danger {
+      background: #ff6b6b;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #ff5252;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .btn-group button {
+      flex: 1;
+    }
+
+    .section {
+      margin-bottom: 40px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .section:last-child {
+      border-bottom: none;
+    }
+
+    .section h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .question-item {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border-left: 4px solid #667eea;
+    }
+
+    .question-item h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .question-item .options {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+
+    .question-item .options p {
+      font-size: 14px;
+      color: #666;
+      margin: 5px 0;
+    }
+
+    .question-item .type-badge {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .question-item .type-badge.simple {
+      background: #4caf50;
+    }
+
+    .copy-btn {
+      background: #2196F3;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .copy-btn:hover {
+      background: #1976D2;
+    }
+
+    .type-selector {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .type-selector label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+
+    .type-selector input[type="radio"] {
+      width: auto;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    #optionsWrapper {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎮 Редактор игры с монетками</h1>
+      <p>Создавай задания и генерируй ссылки для игры</p>
+    </div>
+
+    <div class="content">
+      <div class="section">
+        <h2>Добавить новое задание</h2>
+
+        <div class="form-group">
+          <label>Тип задания</label>
+          <div class="type-selector">
+            <label>
+              <input type="radio" name="questionType" value="quiz" checked />
+              Варианты ответа
+            </label>
+            <label>
+              <input type="radio" name="questionType" value="simple" />
+              Просто вопрос
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="questionText">Вопрос</label>
+          <textarea id="questionText" placeholder="Введите вопрос..."></textarea>
+        </div>
+
+        <div id="optionsWrapper">
+          <div class="form-group">
+            <label for="option1">Вариант ответа 1</label>
+            <input type="text" id="option1" placeholder="Ответ 1" />
+          </div>
+
+          <div class="form-group">
+            <label for="option2">Вариант ответа 2</label>
+            <input type="text" id="option2" placeholder="Ответ 2" />
+          </div>
+
+          <div class="form-group">
+            <label for="option3">Вариант ответа 3</label>
+            <input type="text" id="option3" placeholder="Ответ 3" />
+          </div>
+
+          <div class="form-group">
+            <label for="option4">Вариант ответа 4</label>
+            <input type="text" id="option4" placeholder="Ответ 4" />
+          </div>
+
+          <div class="form-group">
+            <label for="correctAnswer">Номер правильного ответа (1–4)</label>
+            <input
+              type="number"
+              id="correctAnswer"
+              placeholder="1"
+              min="1"
+              max="4"
+            />
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="addQuestion()">
+          Добавить задание
+        </button>
+      </div>
+
+      <div class="section">
+        <h2>Параметры игры</h2>
+
+        <div class="form-group">
+          <label for="elementUrl">URL падающего элемента (гифка/изображение)</label>
+          <input
+            type="text"
+            id="elementUrl"
+            placeholder="https://example.com/coin.gif"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="elementSize">Размер падающего объекта (px)</label>
+          <input
+            type="number"
+            id="elementSize"
+            value="80"
+            min="30"
+            max="300"
+            step="10"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Предпросмотр элемента</label>
+          <div
+            id="elementPreview"
+            style="width: 100px; height: 100px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;"
+          >
+            Нет изображения
+          </div>
+        </div>
+
+        <button
+          class="btn btn-secondary"
+          onclick="updatePreview()"
+          style="width: auto;"
+        >
+          Обновить предпросмотр
+        </button>
+      </div>
+
+      <div class="section">
+        <h2>Добавленные задания (<span id="questionsCount">0</span>)</h2>
+        <div id="questionsList"></div>
+      </div>
+
+      <div class="section">
+        <h2>Сгенерировать ссылку на игру</h2>
+        <button class="btn btn-primary" onclick="generateLink()">
+          Сгенерировать iframe
+        </button>
+        <div id="linkOutput" style="margin-top: 20px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let questions = [];
+
+    document.querySelectorAll('input[name="questionType"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        const optionsWrapper = document.getElementById('optionsWrapper');
+
+        if (this.value === 'simple') {
+          optionsWrapper.classList.add('hidden');
+        } else {
+          optionsWrapper.classList.remove('hidden');
+        }
+      });
+    });
+
+    function addQuestion() {
+      const typeRadios = document.querySelectorAll('input[name="questionType"]');
+      let type = 'quiz';
+
+      typeRadios.forEach(function (radio) {
+        if (radio.checked) {
+          type = radio.value;
+        }
+      });
+
+      const text = document.getElementById('questionText').value.trim();
+
+      if (!text) {
+        alert('Введите вопрос');
+        return;
+      }
+
+      if (type === 'quiz') {
+        const opts = [
+          document.getElementById('option1').value.trim(),
+          document.getElementById('option2').value.trim(),
+          document.getElementById('option3').value.trim(),
+          document.getElementById('option4').value.trim()
+        ];
+
+        const correct = parseInt(
+          document.getElementById('correctAnswer').value,
+          10
+        ) - 1;
+
+        if (opts.some(function (option) { return !option; }) ||
+            !Number.isInteger(correct) ||
+            correct < 0 ||
+            correct > 3) {
+          alert('Заполните все варианты и укажите правильный ответ (1–4)');
+          return;
+        }
+
+        questions.push({
+          type: 'quiz',
+          question: text,
+          options: opts,
+          correct: correct
+        });
+      } else {
+        questions.push({
+          type: 'simple',
+          question: text
+        });
+      }
+
+      document.getElementById('questionText').value = '';
+      document.getElementById('option1').value = '';
+      document.getElementById('option2').value = '';
+      document.getElementById('option3').value = '';
+      document.getElementById('option4').value = '';
+      document.getElementById('correctAnswer').value = '';
+
+      renderQuestions();
+    }
+
+    function deleteQuestion(index) {
+      questions.splice(index, 1);
+      renderQuestions();
+    }
+
+    function renderQuestions() {
+      const list = document.getElementById('questionsList');
+      const count = document.getElementById('questionsCount');
+
+      count.textContent = questions.length;
+
+      list.innerHTML = questions.map(function (question, index) {
+        if (question.type === 'quiz') {
+          return `
+            <div class="question-item">
+              <span class="type-badge">Варианты ответа</span>
+              <h3>Вопрос ${index + 1}: ${escapeHtml(question.question)}</h3>
+              <div class="options">
+                ${question.options.map(function (option, optionIndex) {
+                  return `<p>${optionIndex + 1}. ${escapeHtml(option)} ${optionIndex === question.correct ? '✓' : ''}</p>`;
+                }).join('')}
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-danger" onclick="deleteQuestion(${index})">Удалить</button>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="question-item">
+            <span class="type-badge simple">Простой вопрос</span>
+            <h3>Вопрос ${index + 1}: ${escapeHtml(question.question)}</h3>
+            <div class="btn-group">
+              <button class="btn btn-danger" onclick="deleteQuestion(${index})">Удалить</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, function (character) {
+        const entities = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        };
+        return entities[character];
+      });
+    }
+
+    function updatePreview() {
+      const url = document.getElementById('elementUrl').value.trim();
+      const preview = document.getElementById('elementPreview');
+
+      if (!url) {
+        preview.innerHTML = 'Нет изображения';
+        preview.style.background = '#f0f0f0';
+        preview.style.backgroundImage = '';
+        return;
+      }
+
+      const img = new Image();
+
+      img.onload = function () {
+        preview.innerHTML = '';
+        preview.style.background = 'transparent';
+        preview.style.backgroundImage = `url("${url}")`;
+        preview.style.backgroundSize = 'contain';
+        preview.style.backgroundRepeat = 'no-repeat';
+        preview.style.backgroundPosition = 'center';
+      };
+
+      img.onerror = function () {
+        preview.innerHTML = 'Ошибка загрузки';
+        preview.style.background = '#ffebee';
+        preview.style.backgroundImage = '';
+      };
+
+      img.src = url;
+    }
+
+    function generateLink() {
+      if (questions.length === 0) {
+        alert('Добавьте хотя бы одно задание');
+        return;
+      }
+
+      const elementUrl = document.getElementById('elementUrl').value.trim();
+
+      if (!elementUrl) {
+        alert('Укажите URL падающего элемента');
+        return;
+      }
+
+      const enteredSize = parseInt(
+        document.getElementById('elementSize').value,
+        10
+      );
+
+      const elementSize = Math.min(
+        300,
+        Math.max(30, Number.isFinite(enteredSize) ? enteredSize : 80)
+      );
+
+      document.getElementById('elementSize').value = elementSize;
+
+      const questionsJson = encodeURIComponent(JSON.stringify(questions));
+
+      const gameUrl =
+        'https://trualinka.github.io/coin-editor/game.html' +
+        '?questions=' + questionsJson +
+        '&element=' + encodeURIComponent(elementUrl) +
+        '&size=' + elementSize;
+
+      const iframe =
+        `<iframe src="${gameUrl}" width="100%" height="600" frameborder="0" style="border: none; border-radius: 10px;"></iframe>`;
+
+      const output = document.getElementById('linkOutput');
+
+      output.innerHTML = `
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 8px;">
+          <h3 style="margin-top: 0;">Ссылка на игру:</h3>
+          <input
+            type="text"
+            id="generatedGameLink"
+            readonly
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px;"
+          />
+
+          <button class="copy-btn" onclick="copyGeneratedLink()">
+            Копировать ссылку
+          </button>
+
+          <h3 style="margin-top: 20px;">iframe для вставки:</h3>
+          <textarea
+            id="generatedIframe"
+            readonly
+            style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: monospace; font-size: 12px; margin-bottom: 15px;"
+          ></textarea>
+
+          <button class="copy-btn" onclick="copyGeneratedIframe()">
+            Копировать iframe
+          </button>
+        </div>
+      `;
+
+      document.getElementById('generatedGameLink').value = gameUrl;
+      document.getElementById('generatedIframe').value = iframe;
+    }
+
+    function copyGeneratedLink() {
+      copyToClipboard(document.getElementById('generatedGameLink').value);
+    }
+
+    function copyGeneratedIframe() {
+      copyToClipboard(document.getElementById('generatedIframe').value);
+    }
+
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function () {
+          alert('Скопировано в буфер обмена!');
+        }).catch(function () {
+          fallbackCopy(text);
+        });
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+
+      try {
+        document.execCommand('copy');
+        alert('Скопировано в буфер обмена!');
+      } catch (error) {
+        alert('Не удалось скопировать автоматически. Выделите и скопируйте текст вручную.');
+      }
+
+      textarea.remove();
+    }
+  </script>
+</body>
+</html>
