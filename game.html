@@ -29,7 +29,7 @@
     .element {
       position: absolute;
       cursor: pointer;
-      background-size: contain;
+      background-size: 100% 100%;
       background-repeat: no-repeat;
       background-position: center;
       animation-name: falling;
@@ -209,16 +209,17 @@
   </div>
 
   <script>
+    // Звуки
     function playSound(type) {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
 
       if (!AudioCtx) {
         return;
       }
 
-      const audioCtx = new AudioCtx();
-      const osc = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
+      var audioCtx = new AudioCtx();
+      var osc = audioCtx.createOscillator();
+      var gainNode = audioCtx.createGain();
 
       osc.connect(gainNode);
       gainNode.connect(audioCtx.destination);
@@ -260,13 +261,13 @@
       };
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-
-    let questions = [];
-    let elementUrl = '';
+    // Читаем параметры из адресной строки
+    var urlParams = new URLSearchParams(window.location.search);
+    var questions = [];
+    var elementUrl = '';
 
     try {
-      const questionsParam = urlParams.get('questions');
+      var questionsParam = urlParams.get('questions');
       if (questionsParam) {
         questions = JSON.parse(questionsParam);
       }
@@ -276,29 +277,31 @@
 
     elementUrl = urlParams.get('element') || '';
 
-    const requestedSize = parseInt(urlParams.get('size'), 10);
-    const elementSize = Math.min(
-      300,
-      Math.max(30, Number.isFinite(requestedSize) ? requestedSize : 80)
-    );
+    // Размер объекта из URL. Если параметра нет — используем прежние 80 px.
+    var requestedSize = parseInt(urlParams.get('size'), 10);
+    var elementSize = Number.isFinite(requestedSize)
+      ? Math.min(1000, Math.max(30, requestedSize))
+      : 80;
 
-    let questionsToAsk = questions.slice();
+    // Список вопросов, которые ещё нужно ответить
+    var questionsToAsk = questions.slice();
 
-    const gameContainer = document.getElementById('gameContainer');
-    const modal = document.getElementById('modal');
-    const questionText = document.getElementById('questionText');
-    const optionsContainer = document.getElementById('optionsContainer');
-    const scoreEl = document.getElementById('score');
-    const endScreen = document.getElementById('endScreen');
-    const endScore = document.getElementById('endScore');
-    const endText = document.getElementById('endText');
+    var gameContainer = document.getElementById('gameContainer');
+    var modal = document.getElementById('modal');
+    var questionText = document.getElementById('questionText');
+    var optionsContainer = document.getElementById('optionsContainer');
+    var scoreEl = document.getElementById('score');
+    var endScreen = document.getElementById('endScreen');
+    var endScore = document.getElementById('endScore');
+    var endText = document.getElementById('endText');
 
-    let score = 0;
-    let currentQuestion = null;
-    let answered = false;
-    let gameEnded = false;
-    let fallIntervalId = null;
+    var score = 0;
+    var currentQuestion = null;
+    var answered = false;
+    var gameEnded = false;
+    var fallIntervalId = null;
 
+    // Создаём падающий объект
     function createElement() {
       if (gameEnded) {
         return;
@@ -309,17 +312,19 @@
         return;
       }
 
-      const el = document.createElement('div');
+      var el = document.createElement('div');
       el.className = 'element';
+
+      // Фиксируем размеры объекта по параметру ?size= из iframe-ссылки
       el.style.width = elementSize + 'px';
       el.style.height = elementSize + 'px';
-      el.style.backgroundImage = `url("${elementUrl}")`;
+      el.style.backgroundImage = 'url("' + elementUrl + '")';
 
-      const maxLeft = Math.max(0, window.innerWidth - elementSize);
-      const left = Math.random() * maxLeft;
+      var maxLeft = Math.max(0, window.innerWidth - elementSize);
+      var left = Math.random() * maxLeft;
       el.style.left = left + 'px';
 
-      const duration = 7000 + Math.random() * 3000;
+      var duration = 7000 + Math.random() * 3000;
       el.style.animationDuration = duration + 'ms';
 
       el.addEventListener('click', function (event) {
@@ -354,14 +359,16 @@
       }, duration);
     }
 
+    // Показываем вопрос
     function showModal(question) {
       answered = false;
       questionText.textContent = question.question;
       optionsContainer.innerHTML = '';
 
+      // Поддерживаем задания с вариантами ответа
       if (question.type === 'quiz' && Array.isArray(question.options)) {
         question.options.forEach(function (option, index) {
-          const button = document.createElement('div');
+          var button = document.createElement('div');
           button.className = 'option';
           button.textContent = option;
 
@@ -372,7 +379,8 @@
           optionsContainer.appendChild(button);
         });
       } else {
-        const button = document.createElement('div');
+        // Простой вопрос без вариантов ответа
+        var button = document.createElement('div');
         button.className = 'option continue-btn';
         button.textContent = 'Продолжить';
 
@@ -404,6 +412,7 @@
       modal.classList.add('active');
     }
 
+    // Проверяем ответ в задании с вариантами
     function checkAnswer(selected, button, correct, question) {
       if (answered) {
         return;
@@ -417,14 +426,17 @@
         scoreEl.textContent = '💰 ' + score;
         playSound('correct');
 
+        // Правильно отвечённый вопрос больше не повторяется
         removeQuestion(question);
       } else {
         button.classList.add('incorrect');
 
-        const children = optionsContainer.children;
+        var children = optionsContainer.children;
         if (children[correct]) {
           children[correct].classList.add('correct');
         }
+
+        // Ошибочный вопрос остаётся в списке и может выпасть снова
       }
 
       setTimeout(function () {
@@ -437,13 +449,14 @@
     }
 
     function removeQuestion(question) {
-      const index = questionsToAsk.indexOf(question);
+      var index = questionsToAsk.indexOf(question);
 
       if (index !== -1) {
         questionsToAsk.splice(index, 1);
       }
     }
 
+    // Завершение игры
     function endGame() {
       if (gameEnded) {
         return;
@@ -467,6 +480,7 @@
       playSound('end');
     }
 
+    // Запускаем падающие объекты
     fallIntervalId = setInterval(createElement, 3000);
     createElement();
   </script>
